@@ -5,16 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ระบบควบคุมไฟ IoT - แบบปลอดภัย</title>
 
-  <!-- Firebase v8 (คงเวอร์ชันเดิมตามระบบภายในของคุณ) -->
+  <!-- Firebase v8 (ตามระบบเดิม) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Google Fonts: Prompt -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* =========================
+       Design Tokens / Theme
+       ========================= */
     :root{
       --bg1:#0f172a;         /* slate-900 */
       --bg2:#1e293b;         /* slate-800 */
@@ -31,6 +33,7 @@
       --shadow: 0 10px 35px rgba(0,0,0,.35);
       --radius: 20px;
       --ring: 0 0 0 3px rgba(56,189,248,.3);
+      --outline: 0 0 0 2px rgba(56,189,248,.7);
     }
     [data-theme="light"]{
       --bg1:#eaf6ff;
@@ -40,13 +43,17 @@
       --card: rgba(255,255,255,0.9);
       --glass: rgba(255,255,255,0.75);
       --shadow: 0 18px 55px rgba(15, 23, 42, .18);
+      --outline: 0 0 0 2px rgba(14,165,233,.55);
     }
 
+    /* =========================
+       Base / Layout
+       ========================= */
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
-      font-family:"Noto Sans Thai", system-ui, -apple-system, Segoe UI, Tahoma, sans-serif;
+      font-family:"Prompt", system-ui, -apple-system, Segoe UI, Tahoma, sans-serif; /* ใช้ Prompt ทั้งหน้า */
       color:var(--fg);
       background:
         radial-gradient(1200px 800px at 10% 10%, rgba(56,189,248,.25), transparent 60%),
@@ -58,30 +65,32 @@
       position:relative;
       overflow-x:hidden;
     }
-    /* animated backdrop blobs */
+
+    /* Floating blobs (animated background) */
     .blob{
-      position:absolute; inset:auto; pointer-events:none; z-index:0; filter:blur(40px); opacity:.45;
-      width:600px; height:600px; border-radius:50%;
+      position:absolute; inset:auto; pointer-events:none; z-index:0; filter:blur(42px); opacity:.48;
+      width:620px; height:620px; border-radius:50%;
       background: radial-gradient(circle at 30% 30%, var(--primary), transparent 60%);
       animation: float1 14s ease-in-out infinite;
+      will-change: transform;
     }
     .blob.bl2{
-      width:720px; height:720px; left:auto; right:-160px; top:auto; bottom:-120px;
+      width:760px; height:760px; left:auto; right:-180px; top:auto; bottom:-120px;
       background: radial-gradient(circle at 70% 60%, var(--accent), transparent 60%);
       animation: float2 16s ease-in-out infinite;
     }
-    @keyframes float1{
-      0%,100%{ transform: translate(-10px, -10px) scale(1); }
-      50%{ transform: translate(10px, 15px) scale(1.05); }
+    .blob.bl3{
+      width:520px; height:520px; left:-160px; top:50%;
+      background: radial-gradient(circle at 50% 50%, rgba(34,197,94,.35), transparent 60%);
+      animation: float3 18s ease-in-out infinite;
     }
-    @keyframes float2{
-      0%,100%{ transform: translate(10px, 10px) scale(1); }
-      50%{ transform: translate(-20px, -12px) scale(1.04); }
-    }
+    @keyframes float1{ 0%,100%{ transform: translate(-10px, -10px) scale(1);} 50%{ transform: translate(10px, 15px) scale(1.05);} }
+    @keyframes float2{ 0%,100%{ transform: translate(10px, 10px) scale(1);} 50%{ transform: translate(-20px, -12px) scale(1.04);} }
+    @keyframes float3{ 0%,100%{ transform: translate(0, 0) scale(1);} 50%{ transform: translate(18px, -14px) scale(1.06);} }
 
     .container{
       position:relative; z-index:1;
-      width:min(820px, 100%);
+      width:min(980px, 100%);
       backdrop-filter: saturate(160%) blur(10px);
       background:linear-gradient(180deg, var(--glass), transparent 40%) , var(--card);
       border:1px solid rgba(255,255,255,.18);
@@ -93,66 +102,52 @@
 
     .header{
       display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom:8px;
     }
-    .brand{
-      display:flex; align-items:center; gap:14px;
-    }
+    .brand{ display:flex; align-items:center; gap:14px; }
     .logo{
-      width:52px; height:52px; border-radius:14px; position:relative;
+      width:56px; height:56px; border-radius:16px; position:relative;
       background:
         radial-gradient(70% 70% at 30% 30%, rgba(255,255,255,.55), transparent 60%),
         linear-gradient(135deg, var(--primary), var(--accent));
       box-shadow: 0 12px 30px rgba(56,189,248,.35);
-      overflow:hidden;
-      animation: popin .5s ease-out both;
+      overflow:hidden; animation: popin .5s ease-out both;
     }
     .logo::after{
       content:""; position:absolute; inset:0; border-radius:inherit;
-      background: conic-gradient(from 0deg, transparent 0 320deg, rgba(255,255,255,.35) 340deg);
-      mix-blend-mode: overlay;
-      animation: spin 12s linear infinite;
-      opacity:.6;
+      background: conic-gradient(from 0deg, transparent 0 320deg, rgba(255,255,255,.42) 360deg);
+      mix-blend-mode: overlay; animation: spin 12s linear infinite; opacity:.6;
     }
-    @keyframes popin{
-      from{ transform:scale(.7); opacity:0; } to{ transform:scale(1); opacity:1; }
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
+    @keyframes popin{ from{ transform:scale(.72); opacity:0;} to{ transform:scale(1); opacity:1;} }
+    @keyframes spin{ to{ transform: rotate(360deg);} }
 
-    .title{
-      display:flex; flex-direction:column;
-    }
+    .title{ display:flex; flex-direction:column; }
     h1{
-      margin:0;
-      font-size: clamp(1.35rem, 2.3vw, 1.9rem);
+      margin:0; font-weight:800;
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
       letter-spacing:.2px;
-      font-weight:800;
       background: linear-gradient(90deg, var(--fg), rgba(56,189,248, .95));
       -webkit-background-clip:text; background-clip:text; color:transparent;
     }
-    .subtitle{
-      margin-top:4px;
-      color:var(--muted);
-      font-size: clamp(.95rem, 1.6vw, 1.05rem);
-    }
+    .subtitle{ margin-top:4px; color:var(--muted); font-size: clamp(.95rem, 1.6vw, 1.05rem); }
 
-    .controls{
-      display:flex; align-items:center; gap:10px;
-    }
+    .controls{ display:flex; align-items:center; gap:10px; }
     .theme-toggle{
       appearance:none; border:none; background:transparent; cursor:pointer; color:var(--fg);
       padding:10px 14px; border-radius:14px; transition: transform .15s ease, box-shadow .25s ease, background .25s ease;
-      box-shadow: none;
+      outline:none;
     }
     .theme-toggle:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
-    .theme-toggle:active{ transform: translateY(0); }
+    .theme-toggle:focus-visible{ box-shadow: var(--ring); }
 
+    /* =========================
+       Grid - Panels
+       ========================= */
     .grid{
-      display:grid; gap:16px; margin-top:22px;
-      grid-template-columns: 1.1fr 1fr;
+      display:grid; gap:16px; margin-top:18px;
+      grid-template-columns: 1.2fr 1fr;
     }
-    @media (max-width:880px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    @media (max-width:1024px){ .grid{ grid-template-columns: 1fr; } }
 
     .panel{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
@@ -163,21 +158,22 @@
     }
     .panel::before{
       content:""; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
-      background: radial-gradient(600px 120px at -10% -40%, rgba(56,189,248,.15), transparent 60%),
-                  radial-gradient(400px 100px at 120% 120%, rgba(167,139,250,.12), transparent 70%);
+      background:
+        radial-gradient(600px 120px at -10% -40%, rgba(56,189,248,.15), transparent 60%),
+        radial-gradient(400px 100px at 120% 120%, rgba(167,139,250,.12), transparent 70%);
     }
-    .panel h2{
-      margin:0 0 12px 0; font-size:1.05rem; font-weight:800; color: var(--fg);
-      letter-spacing:.2px;
-    }
+    .panel h2{ margin:0 0 12px 0; font-size:1.08rem; font-weight:800; color: var(--fg); letter-spacing:.2px; }
     .panel p{ margin:0; color:var(--muted); }
 
-    /* Auth Section */
-    .login-section{ display:flex; flex-direction:column; gap:10px; }
+    /* =========================
+       Auth Section
+       ========================= */
+    .login-section{ display:flex; flex-direction:column; gap:12px; }
     .badge{
       display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
       font-weight:700; letter-spacing:.2px; width:max-content;
       transition: box-shadow .25s ease, transform .2s ease;
+      user-select:none;
     }
     .badge.connected{
       background: rgba(34,197,94,.14); color:#052e16; border:1px solid rgba(34,197,94,.35);
@@ -190,14 +186,11 @@
     }
     [data-theme="dark"] .badge.disconnected{ color:#fecaca; }
     .dot{
-      width:10px; height:10px; border-radius:50%;
-      background: currentColor; filter: drop-shadow(0 0 6px currentColor);
-      animation: pulse 1.5s infinite ease-in-out;
+      width:10px; height:10px; border-radius:50%; background: currentColor;
+      filter: drop-shadow(0 0 6px currentColor); animation: pulse 1.5s infinite ease-in-out;
     }
-    @keyframes pulse{
-      0%,100%{ transform: scale(1); opacity: .9; }
-      50%{ transform: scale(1.35); opacity: 1; }
-    }
+    @keyframes pulse{ 0%,100%{ transform: scale(1); opacity: .9;} 50%{ transform: scale(1.35); opacity: 1;} }
+
     .login-actions{ display:flex; gap:10px; flex-wrap:wrap; }
     .login-btn{
       border:0; border-radius:999px; padding:10px 16px; cursor:pointer;
@@ -205,26 +198,26 @@
       color:#f0fff7; font-weight:800;
       box-shadow: 0 12px 24px rgba(16,185,129,.25);
       transition: transform .16s ease, box-shadow .25s ease, filter .25s ease;
+      outline:none;
     }
     .login-btn:hover{ transform: translateY(-1.5px); filter: brightness(1.05); }
-    .login-btn:active{ transform: translateY(0); }
-    .hint{
-      font-size:.9rem; color: var(--muted);
-    }
+    .login-btn:focus-visible{ box-shadow: var(--ring); }
+    .hint{ font-size:.9rem; color: var(--muted); }
 
-    /* Light Status Panel */
+    /* =========================
+       Light Status + Controls
+       ========================= */
     .status-wrap{
       display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
       margin-top:8px;
     }
     .status-indicator{
-      position:relative; width:140px; height:140px; border-radius:50%;
+      position:relative; width:150px; height:150px; border-radius:50%;
       display:grid; place-items:center;
-      color:#fff; font-weight:900; letter-spacing:.3px; font-size:1.2rem;
+      color:#fff; font-weight:900; letter-spacing:.3px; font-size:1.18rem;
       transition: transform .35s ease, box-shadow .35s ease, filter .35s ease;
       box-shadow: 0 20px 45px rgba(2,8,23,.25);
-      overflow:hidden;
-      user-select:none;
+      overflow:hidden; user-select:none;
     }
     .status-indicator::before{
       content:""; position:absolute; inset:0;
@@ -241,12 +234,10 @@
       box-shadow: 0 26px 55px rgba(245,158,11,.4), 0 8px 22px rgba(239,68,68,.22);
       animation: breathe 2.6s ease-in-out infinite;
     }
-    @keyframes breathe{
-      0%,100%{ transform: scale(1); } 50%{ transform: scale(1.035); }
-    }
+    @keyframes breathe{ 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.035);} }
 
     .control-group{
-      display:flex; flex-direction:column; align-items:center; gap:12px; min-width:220px;
+      display:flex; flex-direction:column; align-items:center; gap:12px; min-width:240px;
     }
     .control-btn{
       background: linear-gradient(135deg, var(--primary), var(--primary-2));
@@ -254,20 +245,24 @@
       padding:14px 22px; font-size:1.05rem; font-weight:900; letter-spacing:.2px; cursor:pointer;
       box-shadow: 0 18px 40px rgba(56,189,248,.35);
       transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
-      min-width: 220px;
+      min-width: 240px;
+      outline:none;
     }
     .control-btn:hover:not(:disabled){ transform: translateY(-2px); filter: brightness(1.05); }
     .control-btn:active:not(:disabled){ transform: translateY(0); }
+    .control-btn:focus-visible{ box-shadow: var(--ring); }
     .control-btn:disabled{
       background:linear-gradient(135deg, #94a3b8, #64748b);
-      cursor:not-allowed; opacity:.75; box-shadow:none;
+      cursor:not-allowed; opacity:.78; box-shadow:none;
     }
     .mini-label{ color:var(--muted); font-size:.9rem; }
 
-    /* Connection panel */
+    /* =========================
+       Connection Indicator
+       ========================= */
     .connection{
       display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      padding:10px 12px; border-radius:12px; margin-top:8px; width:100%;
+      padding:10px 12px; border-radius:12px; margin-top:10px; width:100%;
       background: rgba(255,255,255,.07);
       border: 1px dashed rgba(255,255,255,.18);
     }
@@ -280,7 +275,9 @@
     .conn-bad{ color:#7f1d1d; }
     [data-theme="dark"] .conn-bad{ color:#fecaca; }
 
-    /* Warning security */
+    /* =========================
+       Security Warning
+       ========================= */
     .warning{
       display:flex; gap:12px; align-items:flex-start; padding:14px; border-radius:14px;
       background: linear-gradient(180deg, rgba(245,158,11,.16), rgba(245,158,11,.08));
@@ -290,25 +287,29 @@
     [data-theme="dark"] .warning{ color:#ffedd5; }
     .warning strong{ display:block; margin-bottom:6px; }
 
-    /* Footer */
     .footer{
       margin-top:18px; color:var(--muted); font-size:.92rem; text-align:center;
     }
 
-    /* Toast */
+    /* =========================
+       Toast
+       ========================= */
     .toast{
       position: fixed; left:50%; top:18px; transform: translateX(-50%) translateY(-24px);
       min-width: 260px; max-width: 88vw;
       background: rgba(15,23,42,.9); color:#fff; padding:12px 16px; border-radius:12px;
       display:flex; align-items:center; gap:10px; box-shadow: 0 14px 35px rgba(0,0,0,.35);
       opacity:0; pointer-events:none; z-index:9999;
+      font-family:"Prompt", system-ui, -apple-system, Segoe UI, Tahoma, sans-serif;
     }
     [data-theme="light"] .toast{ background: rgba(15,23,42,.95); }
-    .toast.show{ animation: toast-in .2s ease forwards, toast-out .2s ease 2.3s forwards; }
-    @keyframes toast-in{ to{ opacity:1; transform: translateX(-50%) translateY(0); } }
+    .toast.show{ animation: toast-in .2s ease forwards, toast-out .22s ease 2.35s forwards; }
+    @keyframes toast-in{ to{ opacity:1; transform: translateX(-50%) translateY(0);} }
     @keyframes toast-out{ to{ opacity:0; transform: translateX(-50%) translateY(-24px);} }
 
-    /* A11y prefers-reduced-motion */
+    /* =========================
+       Reduced Motion
+       ========================= */
     @media (prefers-reduced-motion: reduce){
       .blob, .status-indicator::before, .status-indicator.status-on, .logo::after, .connection .loading{
         animation:none !important;
@@ -319,6 +320,7 @@
 <body>
   <div class="blob"></div>
   <div class="blob bl2"></div>
+  <div class="blob bl3"></div>
 
   <main class="container" role="main" aria-labelledby="pageTitle">
     <header class="header">
@@ -326,11 +328,11 @@
         <div class="logo" aria-hidden="true"></div>
         <div class="title">
           <h1 id="pageTitle">ระบบควบคุมไฟ IoT</h1>
-          <div class="subtitle">ควบคุมไฟด้วยการคลิกปุ่มด้านล่าง • realtime ผ่าน Firebase</div>
+          <div class="subtitle">ควบคุมไฟด้วยการคลิกปุ่มด้านล่าง • Realtime ผ่าน Firebase</div>
         </div>
       </div>
       <div class="controls">
-        <button id="themeToggle" class="theme-toggle" aria-label="สลับธีม">🌓 สลับธีม</button>
+        <button id="themeToggle" class="theme-toggle" aria-label="สลับธีม" title="สลับธีม">🌓 สลับธีม</button>
       </div>
     </header>
 
@@ -338,14 +340,17 @@
       <!-- Auth -->
       <section class="panel login-section" aria-labelledby="authTitle">
         <h2 id="authTitle">การยืนยันตัวตน</h2>
-        <div id="authStatus" class="badge disconnected">
+        <div id="authStatus" class="badge disconnected" role="status" aria-live="polite">
           <span class="dot" aria-hidden="true"></span>
           <span>ไม่ได้ล็อกอิน</span>
         </div>
         <div class="login-actions">
           <button id="anonymousLogin" class="login-btn">ล็อกอินแบบไม่ระบุตัวตน</button>
         </div>
-        <p class="hint">หากพบข้อความว่า <strong>“This operation is restricted to administrators only.”</strong> ให้ตรวจสอบ Firebase Authentication > Sign-in method เปิดใช้งาน Anonymous และกำหนด Security Rules ให้รองรับการอ่าน/เขียนที่จำเป็นอย่างปลอดภัย</p>
+        <p class="hint">
+          หากพบข้อความ <strong>“This operation is restricted to administrators only.”</strong>
+          ให้ตรวจสอบ Firebase Authentication > Sign-in method เปิด Anonymous และตั้ง Security Rules ให้ปลอดภัยพอสำหรับ read/write ที่จำเป็น
+        </p>
       </section>
 
       <!-- Status + Control -->
@@ -372,11 +377,11 @@
         <div style="font-size:1.2rem">⚠️</div>
         <div>
           <strong>โปรดตั้งค่า Firebase Rules ให้เหมาะสม</strong>
-          แนะนำให้จำกัดสิทธิ์เฉพาะผู้ที่ล็อกอินแล้ว และตรวจสอบ fields ที่แก้ไขได้ เช่น <code>status</code>, <code>lastUpdated</code>, <code>lastUpdatedBy</code> เท่านั้น
+          แนะนำจำกัดสิทธิ์เฉพาะผู้ล็อกอิน และให้ปรับเฉพาะ fields ที่จำเป็น เช่น <code>status</code>, <code>lastUpdated</code>, <code>lastUpdatedBy</code>
         </div>
       </div>
       <div class="footer">
-        ระบบควบคุมไฟ IoT Dashboard • พัฒนาด้วย Firebase Firestore • รองรับทั้งโหมดสว่าง/มืด
+        ระบบควบคุมไฟ IoT Dashboard • พัฒนาด้วย Firebase Firestore • รองรับโหมดสว่าง/มืด
       </div>
     </section>
   </main>
@@ -387,21 +392,25 @@
   </div>
 
   <script>
-    // ===== Theme toggle (ไม่กระทบระบบภายใน) =====
+    /* =========================
+       Theme Toggle (ไม่แตะระบบภายใน)
+       ========================= */
     (function(){
       const root = document.documentElement;
       const btn = document.getElementById('themeToggle');
       const saved = localStorage.getItem('theme');
-      if(saved){ document.documentElement.setAttribute('data-theme', saved); }
+      if(saved){ root.setAttribute('data-theme', saved); }
       btn.addEventListener('click', ()=>{
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const current = root.getAttribute('data-theme') || 'light';
         const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
+        root.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
       });
     })();
 
-    // ===== Toast helper =====
+    /* =========================
+       Toast Helper
+       ========================= */
     function toast(message, icon){
       const el = document.getElementById('toast');
       const msg = document.getElementById('toastMsg');
@@ -409,32 +418,33 @@
       msg.textContent = message;
       ico.textContent = icon || '🔔';
       el.classList.remove('show');
-      // force reflow to restart animation
-      void el.offsetWidth;
+      void el.offsetWidth; // restart animation
       el.classList.add('show');
     }
 
-    // ===== Firebase configuration (คงของเดิม) =====
+    /* =========================
+       Firebase Config (คงของเดิม)
+       ========================= */
     const firebaseConfig = { apiKey: "AIzaSyATm8B8nUVqHNUcCbXez6qKed_8fju7Obw", authDomain: "basiclotg3-e047a.firebaseapp.com", projectId: "basiclotg3-e047a", storageBucket: "basiclotg3-e047a.firebasestorage.app", messagingSenderId: "513944307771", appId: "1:513944307771:web:bdeaa6c97b09ee6517f41e" };
 
-    // Initialize Firebase (เดิม)
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // DOM elements (เดิม + บางส่วนเพิ่ม)
+    // DOM elements
     const statusIndicator = document.getElementById('statusIndicator');
     const controlButton = document.getElementById('controlButton');
     const connectionStatus = document.getElementById('connectionStatus');
     const authStatus = document.getElementById('authStatus');
     const anonymousLoginBtn = document.getElementById('anonymousLogin');
 
-    // Firestore ref (เดิม)
+    // Firestore ref
     const lightDoc = db.collection('devices').doc('light');
 
     let isUpdating = false; // กันกดรัวระหว่าง update
 
-    // ปรับ UI ตามสถานะไฟ
+    // Update UI by status
     function updateUI(status) {
       if (status === 1) {
         statusIndicator.textContent = 'เปิด';
@@ -449,12 +459,12 @@
       }
     }
 
-    // อัปเดตการเชื่อมต่อ
+    // Connection indicator
     function setConnection(ok, text){
       connectionStatus.innerHTML = '';
       const icon = document.createElement('span');
       icon.className = ok ? '' : 'loading';
-      if(ok){ icon.textContent = '✓'; icon.style.fontWeight = '900'; }
+      if(ok){ icon.textContent = '✓'; icon.style.fontWeight = '900'; icon.setAttribute('aria-hidden','true'); }
       connectionStatus.appendChild(icon);
       const label = document.createElement('span');
       label.textContent = ' ' + text;
@@ -462,13 +472,13 @@
       connectionStatus.appendChild(label);
     }
 
-    // Auth state listener (เดิม + UX)
+    // Auth state listener
     auth.onAuthStateChanged((user) => {
       if (user) {
         authStatus.className = 'badge connected';
         authStatus.innerHTML = '<span class="dot"></span><span>✓ ล็อกอินแล้ว (ไม่ระบุตัวตน)</span>';
         anonymousLoginBtn.style.display = 'none';
-        controlButton.disabled = true; // จะเปิดใช้งานหลัง snapshot พร้อม
+        controlButton.disabled = true; // เปิดหลัง snapshot
         setupDatabaseListener();
         toast('ล็อกอินสำเร็จ', '✅');
       } else {
@@ -479,16 +489,12 @@
       }
     });
 
-    // Anonymous login (เดิม + จับ error เพิ่มเติม)
+    // Anonymous login
     anonymousLoginBtn.addEventListener('click', () => {
       auth.signInAnonymously()
-        .then(() => {
-          // ok
-        })
         .catch((error) => {
           console.error('Anonymous sign-in error:', error);
           let msg = 'การล็อกอินล้มเหลว: ' + error.message;
-          // จับเคสที่พบบ่อย
           if ((error && String(error.message).includes('restricted to administrators only')) ||
               (error && String(error.code).includes('auth/operation-not-allowed'))) {
             msg = 'การล็อกอินแบบไม่ระบุตัวตนถูกปิดใช้งานในโปรเจกต์นี้ โปรดเปิด Anonymous sign-in ใน Firebase Console และตรวจสอบ Security Rules';
@@ -498,7 +504,7 @@
         });
     });
 
-    // Firestore realtime (เดิม)
+    // Firestore realtime
     function setupDatabaseListener() {
       lightDoc.onSnapshot((doc) => {
         if (doc.exists) {
@@ -507,7 +513,7 @@
           setConnection(true, 'เชื่อมต่อกับเซิร์ฟเวอร์แล้ว');
           controlButton.disabled = false;
         } else {
-          // ถ้าเอกสารไม่มี ให้สร้างครั้งแรก (เดิม)
+          // create if not exists
           lightDoc.set({ status: 0, lastUpdated: new Date() })
             .then(()=> setConnection(true, 'สร้างค่าเริ่มต้นและเชื่อมต่อแล้ว'))
             .catch((e)=> { console.error(e); setConnection(false, 'ไม่สามารถสร้างเอกสารเริ่มต้น'); });
@@ -519,7 +525,7 @@
       });
     }
 
-    // Toggle light (เดิม + กันกดรัว + Toast)
+    // Toggle light
     controlButton.addEventListener('click', () => {
       if (!auth.currentUser) {
         alert('กรุณาล็อกอินก่อน');
@@ -543,7 +549,6 @@
             lastUpdatedBy: auth.currentUser.uid
           });
         } else {
-          // ถ้าไม่มีก็สร้างใหม่ (ความสอดคล้องเดิม)
           return lightDoc.set({
             status: 1,
             lastUpdated: new Date(),
@@ -563,7 +568,7 @@
       });
     });
 
-    // โหลดหน้าแล้วโชว์ Toast เล็ก ๆ
+    // First-load toast
     window.addEventListener('load', ()=> {
       setTimeout(()=> toast('พร้อมใช้งาน', '🚀'), 350);
     });
