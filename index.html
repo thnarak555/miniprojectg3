@@ -1,331 +1,572 @@
-ให้ใช้งานได้แบบนี้อะ 
-
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบควบคุมไฟ IoT - แบบปลอดภัย</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.2rem;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-        
-        .status-container {
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .status-label {
-            font-size: 1.2rem;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 15px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            transition: all 0.5s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .status-off {
-            background: linear-gradient(135deg, #8e9eab, #eef2f3);
-            color: #666 !important;
-        }
-        
-        .status-on {
-            background: linear-gradient(135deg, #f46b45, #eea849);
-        }
-        
-        .control-btn {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            margin: 10px 0;
-            width: 100%;
-            max-width: 250px;
-        }
-        
-        .control-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .control-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .control-btn:active:not(:disabled) {
-            transform: translateY(1px);
-        }
-        
-        .connection-status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .connected {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .disconnected {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .footer {
-            margin-top: 30px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .login-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .login-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 5px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ระบบควบคุมไฟ IoT - แบบปลอดภัย</title>
+
+  <!-- Firebase v8 (คงเวอร์ชันเดิมตามระบบภายในของคุณ) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <style>
+    :root{
+      --bg1:#0f172a;         /* slate-900 */
+      --bg2:#1e293b;         /* slate-800 */
+      --fg:#e2e8f0;          /* slate-200 */
+      --muted:#94a3b8;       /* slate-400 */
+      --primary:#38bdf8;     /* sky-400 */
+      --primary-2:#22d3ee;   /* cyan-400 */
+      --accent:#a78bfa;      /* violet-400 */
+      --success:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --card: rgba(255,255,255,0.08);
+      --glass: rgba(255,255,255,0.12);
+      --shadow: 0 10px 35px rgba(0,0,0,.35);
+      --radius: 20px;
+      --ring: 0 0 0 3px rgba(56,189,248,.3);
+    }
+    [data-theme="light"]{
+      --bg1:#eaf6ff;
+      --bg2:#e6f0ff;
+      --fg:#0f172a;
+      --muted:#475569;
+      --card: rgba(255,255,255,0.9);
+      --glass: rgba(255,255,255,0.75);
+      --shadow: 0 18px 55px rgba(15, 23, 42, .18);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:"Noto Sans Thai", system-ui, -apple-system, Segoe UI, Tahoma, sans-serif;
+      color:var(--fg);
+      background:
+        radial-gradient(1200px 800px at 10% 10%, rgba(56,189,248,.25), transparent 60%),
+        radial-gradient(1200px 800px at 90% 90%, rgba(167,139,250,.15), transparent 60%),
+        linear-gradient(120deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      padding:24px;
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* animated backdrop blobs */
+    .blob{
+      position:absolute; inset:auto; pointer-events:none; z-index:0; filter:blur(40px); opacity:.45;
+      width:600px; height:600px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--primary), transparent 60%);
+      animation: float1 14s ease-in-out infinite;
+    }
+    .blob.bl2{
+      width:720px; height:720px; left:auto; right:-160px; top:auto; bottom:-120px;
+      background: radial-gradient(circle at 70% 60%, var(--accent), transparent 60%);
+      animation: float2 16s ease-in-out infinite;
+    }
+    @keyframes float1{
+      0%,100%{ transform: translate(-10px, -10px) scale(1); }
+      50%{ transform: translate(10px, 15px) scale(1.05); }
+    }
+    @keyframes float2{
+      0%,100%{ transform: translate(10px, 10px) scale(1); }
+      50%{ transform: translate(-20px, -12px) scale(1.04); }
+    }
+
+    .container{
+      position:relative; z-index:1;
+      width:min(820px, 100%);
+      backdrop-filter: saturate(160%) blur(10px);
+      background:linear-gradient(180deg, var(--glass), transparent 40%) , var(--card);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 36px);
+      overflow:hidden;
+    }
+
+    .header{
+      display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:14px;
+    }
+    .logo{
+      width:52px; height:52px; border-radius:14px; position:relative;
+      background:
+        radial-gradient(70% 70% at 30% 30%, rgba(255,255,255,.55), transparent 60%),
+        linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 12px 30px rgba(56,189,248,.35);
+      overflow:hidden;
+      animation: popin .5s ease-out both;
+    }
+    .logo::after{
+      content:""; position:absolute; inset:0; border-radius:inherit;
+      background: conic-gradient(from 0deg, transparent 0 320deg, rgba(255,255,255,.35) 340deg);
+      mix-blend-mode: overlay;
+      animation: spin 12s linear infinite;
+      opacity:.6;
+    }
+    @keyframes popin{
+      from{ transform:scale(.7); opacity:0; } to{ transform:scale(1); opacity:1; }
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+
+    .title{
+      display:flex; flex-direction:column;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(1.35rem, 2.3vw, 1.9rem);
+      letter-spacing:.2px;
+      font-weight:800;
+      background: linear-gradient(90deg, var(--fg), rgba(56,189,248, .95));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .subtitle{
+      margin-top:4px;
+      color:var(--muted);
+      font-size: clamp(.95rem, 1.6vw, 1.05rem);
+    }
+
+    .controls{
+      display:flex; align-items:center; gap:10px;
+    }
+    .theme-toggle{
+      appearance:none; border:none; background:transparent; cursor:pointer; color:var(--fg);
+      padding:10px 14px; border-radius:14px; transition: transform .15s ease, box-shadow .25s ease, background .25s ease;
+      box-shadow: none;
+    }
+    .theme-toggle:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
+    .theme-toggle:active{ transform: translateY(0); }
+
+    .grid{
+      display:grid; gap:16px; margin-top:22px;
+      grid-template-columns: 1.1fr 1fr;
+    }
+    @media (max-width:880px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px; padding:18px;
+      box-shadow: 0 8px 28px rgba(2,8,23,.15);
+      position:relative; overflow:hidden;
+    }
+    .panel::before{
+      content:""; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+      background: radial-gradient(600px 120px at -10% -40%, rgba(56,189,248,.15), transparent 60%),
+                  radial-gradient(400px 100px at 120% 120%, rgba(167,139,250,.12), transparent 70%);
+    }
+    .panel h2{
+      margin:0 0 12px 0; font-size:1.05rem; font-weight:800; color: var(--fg);
+      letter-spacing:.2px;
+    }
+    .panel p{ margin:0; color:var(--muted); }
+
+    /* Auth Section */
+    .login-section{ display:flex; flex-direction:column; gap:10px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+      font-weight:700; letter-spacing:.2px; width:max-content;
+      transition: box-shadow .25s ease, transform .2s ease;
+    }
+    .badge.connected{
+      background: rgba(34,197,94,.14); color:#052e16; border:1px solid rgba(34,197,94,.35);
+      box-shadow: 0 8px 22px rgba(34,197,94,.18);
+    }
+    [data-theme="dark"] .badge.connected{ color:#dcfce7; }
+    .badge.disconnected{
+      background: rgba(239,68,68,.14); color:#7f1d1d; border:1px solid rgba(239,68,68,.35);
+      box-shadow: 0 8px 22px rgba(239,68,68,.18);
+    }
+    [data-theme="dark"] .badge.disconnected{ color:#fecaca; }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: currentColor; filter: drop-shadow(0 0 6px currentColor);
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity: .9; }
+      50%{ transform: scale(1.35); opacity: 1; }
+    }
+    .login-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    .login-btn{
+      border:0; border-radius:999px; padding:10px 16px; cursor:pointer;
+      background: linear-gradient(135deg, var(--success), #10b981);
+      color:#f0fff7; font-weight:800;
+      box-shadow: 0 12px 24px rgba(16,185,129,.25);
+      transition: transform .16s ease, box-shadow .25s ease, filter .25s ease;
+    }
+    .login-btn:hover{ transform: translateY(-1.5px); filter: brightness(1.05); }
+    .login-btn:active{ transform: translateY(0); }
+    .hint{
+      font-size:.9rem; color: var(--muted);
+    }
+
+    /* Light Status Panel */
+    .status-wrap{
+      display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .status-indicator{
+      position:relative; width:140px; height:140px; border-radius:50%;
+      display:grid; place-items:center;
+      color:#fff; font-weight:900; letter-spacing:.3px; font-size:1.2rem;
+      transition: transform .35s ease, box-shadow .35s ease, filter .35s ease;
+      box-shadow: 0 20px 45px rgba(2,8,23,.25);
+      overflow:hidden;
+      user-select:none;
+    }
+    .status-indicator::before{
+      content:""; position:absolute; inset:0;
+      background: conic-gradient(from 0deg, rgba(255,255,255,.0) 0 320deg, rgba(255,255,255,.42) 360deg);
+      mix-blend-mode: overlay; animation: spin 8s linear infinite;
+    }
+    .status-indicator.status-off{
+      background: radial-gradient(60% 60% at 50% 40%, #cbd5e1, #94a3b8);
+      color:#0f172a;
+      box-shadow: 0 18px 40px rgba(148,163,184,.35);
+    }
+    .status-indicator.status-on{
+      background: radial-gradient(60% 60% at 50% 35%, #f59e0b, #ef4444);
+      box-shadow: 0 26px 55px rgba(245,158,11,.4), 0 8px 22px rgba(239,68,68,.22);
+      animation: breathe 2.6s ease-in-out infinite;
+    }
+    @keyframes breathe{
+      0%,100%{ transform: scale(1); } 50%{ transform: scale(1.035); }
+    }
+
+    .control-group{
+      display:flex; flex-direction:column; align-items:center; gap:12px; min-width:220px;
+    }
+    .control-btn{
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color:white; border:none; border-radius:16px;
+      padding:14px 22px; font-size:1.05rem; font-weight:900; letter-spacing:.2px; cursor:pointer;
+      box-shadow: 0 18px 40px rgba(56,189,248,.35);
+      transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
+      min-width: 220px;
+    }
+    .control-btn:hover:not(:disabled){ transform: translateY(-2px); filter: brightness(1.05); }
+    .control-btn:active:not(:disabled){ transform: translateY(0); }
+    .control-btn:disabled{
+      background:linear-gradient(135deg, #94a3b8, #64748b);
+      cursor:not-allowed; opacity:.75; box-shadow:none;
+    }
+    .mini-label{ color:var(--muted); font-size:.9rem; }
+
+    /* Connection panel */
+    .connection{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px 12px; border-radius:12px; margin-top:8px; width:100%;
+      background: rgba(255,255,255,.07);
+      border: 1px dashed rgba(255,255,255,.18);
+    }
+    .connection .loading{
+      width:18px; height:18px; border:3px solid rgba(255,255,255,.35);
+      border-top-color: #fff; border-radius:50%; animation: spin 1s linear infinite;
+    }
+    .conn-ok{ color:#064e3b; }
+    [data-theme="dark"] .conn-ok{ color:#bbf7d0; }
+    .conn-bad{ color:#7f1d1d; }
+    [data-theme="dark"] .conn-bad{ color:#fecaca; }
+
+    /* Warning security */
+    .warning{
+      display:flex; gap:12px; align-items:flex-start; padding:14px; border-radius:14px;
+      background: linear-gradient(180deg, rgba(245,158,11,.16), rgba(245,158,11,.08));
+      border:1px solid rgba(245,158,11,.35);
+      color:#7c2d12;
+    }
+    [data-theme="dark"] .warning{ color:#ffedd5; }
+    .warning strong{ display:block; margin-bottom:6px; }
+
+    /* Footer */
+    .footer{
+      margin-top:18px; color:var(--muted); font-size:.92rem; text-align:center;
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed; left:50%; top:18px; transform: translateX(-50%) translateY(-24px);
+      min-width: 260px; max-width: 88vw;
+      background: rgba(15,23,42,.9); color:#fff; padding:12px 16px; border-radius:12px;
+      display:flex; align-items:center; gap:10px; box-shadow: 0 14px 35px rgba(0,0,0,.35);
+      opacity:0; pointer-events:none; z-index:9999;
+    }
+    [data-theme="light"] .toast{ background: rgba(15,23,42,.95); }
+    .toast.show{ animation: toast-in .2s ease forwards, toast-out .2s ease 2.3s forwards; }
+    @keyframes toast-in{ to{ opacity:1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toast-out{ to{ opacity:0; transform: translateX(-50%) translateY(-24px);} }
+
+    /* A11y prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce){
+      .blob, .status-indicator::before, .status-indicator.status-on, .logo::after, .connection .loading{
+        animation:none !important;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ระบบควบคุมไฟ IoT</h1>
-        <p class="subtitle">ควบคุมไฟด้วยการคลิกปุ่มด้านล่าง</p>
-        
-        <div class="warning">
-            <strong>คำเตือนด้านความปลอดภัย:</strong> โปรดตั้งค่า Firebase Rules ให้เหมาะสมเพื่อป้องกันการเข้าถึงข้อมูลโดยไม่ได้รับอนุญาต
-        </div>
-        
-        <div id="loginSection" class="login-section">
-            <p>สถานะการยืนยันตัวตน:</p>
-            <div id="authStatus" class="connection-status disconnected">
-                ไม่ได้ล็อกอิน
-            </div>
-            <button id="anonymousLogin" class="login-btn">ล็อกอินแบบไม่ระบุตัวตน</button>
-        </div>
-        
-        <div class="status-container">
-            <div class="status-label">สถานะไฟปัจจุบัน:</div>
-            <div id="statusIndicator" class="status-indicator status-off">ปิด</div>
-        </div>
-        
-        <button id="controlButton" class="control-btn" disabled>เปิดไฟ</button>
-        
-        <div id="connectionStatus" class="connection-status disconnected">
-            <span class="loading"></span>กำลังเชื่อมต่อกับเซิร์ฟเวอร์...
-        </div>
-        
-        <div class="footer">
-            ระบบควบคุมไฟ IoT Dashboard | พัฒนาด้วย Firebase Firestore
-        </div>
-    </div>
+  <div class="blob"></div>
+  <div class="blob bl2"></div>
 
-    <script>
-        // Firebase configuration
-const firebaseConfig = { apiKey: "AIzaSyATm8B8nUVqHNUcCbXez6qKed_8fju7Obw", authDomain: "basiclotg3-e047a.firebaseapp.com", projectId: "basiclotg3-e047a", storageBucket: "basiclotg3-e047a.firebasestorage.app", messagingSenderId: "513944307771", appId: "1:513944307771:web:bdeaa6c97b09ee6517f41e" };
+  <main class="container" role="main" aria-labelledby="pageTitle">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <h1 id="pageTitle">ระบบควบคุมไฟ IoT</h1>
+          <div class="subtitle">ควบคุมไฟด้วยการคลิกปุ่มด้านล่าง • realtime ผ่าน Firebase</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="themeToggle" class="theme-toggle" aria-label="สลับธีม">🌓 สลับธีม</button>
+      </div>
+    </header>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        
-        // DOM elements
-        const statusIndicator = document.getElementById('statusIndicator');
-        const controlButton = document.getElementById('controlButton');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const authStatus = document.getElementById('authStatus');
-        const anonymousLoginBtn = document.getElementById('anonymousLogin');
-        const loginSection = document.getElementById('loginSection');
-        
-        // Reference to the light document
-        const lightDoc = db.collection('devices').doc('light');
-        
-        // Authentication state listener
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                authStatus.className = 'connection-status connected';
-                authStatus.innerHTML = '✓ ล็อกอินแล้ว (ไม่ระบุตัวตน)';
-                anonymousLoginBtn.style.display = 'none';
-                setupDatabaseListener();
-            } else {
-                // User is signed out
-                authStatus.className = 'connection-status disconnected';
-                authStatus.innerHTML = 'ไม่ได้ล็อกอิน';
-                anonymousLoginBtn.style.display = 'inline-block';
-                controlButton.disabled = true;
-            }
+    <section class="grid" aria-live="polite">
+      <!-- Auth -->
+      <section class="panel login-section" aria-labelledby="authTitle">
+        <h2 id="authTitle">การยืนยันตัวตน</h2>
+        <div id="authStatus" class="badge disconnected">
+          <span class="dot" aria-hidden="true"></span>
+          <span>ไม่ได้ล็อกอิน</span>
+        </div>
+        <div class="login-actions">
+          <button id="anonymousLogin" class="login-btn">ล็อกอินแบบไม่ระบุตัวตน</button>
+        </div>
+        <p class="hint">หากพบข้อความว่า <strong>“This operation is restricted to administrators only.”</strong> ให้ตรวจสอบ Firebase Authentication > Sign-in method เปิดใช้งาน Anonymous และกำหนด Security Rules ให้รองรับการอ่าน/เขียนที่จำเป็นอย่างปลอดภัย</p>
+      </section>
+
+      <!-- Status + Control -->
+      <section class="panel" aria-labelledby="statusTitle">
+        <h2 id="statusTitle">สถานะไฟปัจจุบัน</h2>
+        <div class="status-wrap">
+          <div id="statusIndicator" class="status-indicator status-off" role="status" aria-live="polite">ปิด</div>
+          <div class="control-group">
+            <button id="controlButton" class="control-btn" disabled>เปิดไฟ</button>
+            <div class="mini-label">กดเพื่อสลับ เปิด/ปิด (ต้องล็อกอินก่อน)</div>
+          </div>
+        </div>
+
+        <div id="connectionStatus" class="connection" aria-live="polite">
+          <span class="loading" aria-hidden="true"></span>
+          <span>กำลังเชื่อมต่อกับเซิร์ฟเวอร์...</span>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel" style="margin-top:16px" aria-labelledby="secTitle">
+      <h2 id="secTitle">คำเตือนด้านความปลอดภัย</h2>
+      <div class="warning">
+        <div style="font-size:1.2rem">⚠️</div>
+        <div>
+          <strong>โปรดตั้งค่า Firebase Rules ให้เหมาะสม</strong>
+          แนะนำให้จำกัดสิทธิ์เฉพาะผู้ที่ล็อกอินแล้ว และตรวจสอบ fields ที่แก้ไขได้ เช่น <code>status</code>, <code>lastUpdated</code>, <code>lastUpdatedBy</code> เท่านั้น
+        </div>
+      </div>
+      <div class="footer">
+        ระบบควบคุมไฟ IoT Dashboard • พัฒนาด้วย Firebase Firestore • รองรับทั้งโหมดสว่าง/มืด
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toastIcon">🔔</span>
+    <span id="toastMsg">พร้อมใช้งาน</span>
+  </div>
+
+  <script>
+    // ===== Theme toggle (ไม่กระทบระบบภายใน) =====
+    (function(){
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const saved = localStorage.getItem('theme');
+      if(saved){ document.documentElement.setAttribute('data-theme', saved); }
+      btn.addEventListener('click', ()=>{
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    })();
+
+    // ===== Toast helper =====
+    function toast(message, icon){
+      const el = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      const ico = document.getElementById('toastIcon');
+      msg.textContent = message;
+      ico.textContent = icon || '🔔';
+      el.classList.remove('show');
+      // force reflow to restart animation
+      void el.offsetWidth;
+      el.classList.add('show');
+    }
+
+    // ===== Firebase configuration (คงของเดิม) =====
+    const firebaseConfig = { apiKey: "AIzaSyATm8B8nUVqHNUcCbXez6qKed_8fju7Obw", authDomain: "basiclotg3-e047a.firebaseapp.com", projectId: "basiclotg3-e047a", storageBucket: "basiclotg3-e047a.firebasestorage.app", messagingSenderId: "513944307771", appId: "1:513944307771:web:bdeaa6c97b09ee6517f41e" };
+
+    // Initialize Firebase (เดิม)
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // DOM elements (เดิม + บางส่วนเพิ่ม)
+    const statusIndicator = document.getElementById('statusIndicator');
+    const controlButton = document.getElementById('controlButton');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const authStatus = document.getElementById('authStatus');
+    const anonymousLoginBtn = document.getElementById('anonymousLogin');
+
+    // Firestore ref (เดิม)
+    const lightDoc = db.collection('devices').doc('light');
+
+    let isUpdating = false; // กันกดรัวระหว่าง update
+
+    // ปรับ UI ตามสถานะไฟ
+    function updateUI(status) {
+      if (status === 1) {
+        statusIndicator.textContent = 'เปิด';
+        statusIndicator.className = 'status-indicator status-on';
+        controlButton.textContent = 'ปิดไฟ';
+        controlButton.setAttribute('aria-label','ปิดไฟ');
+      } else {
+        statusIndicator.textContent = 'ปิด';
+        statusIndicator.className = 'status-indicator status-off';
+        controlButton.textContent = 'เปิดไฟ';
+        controlButton.setAttribute('aria-label','เปิดไฟ');
+      }
+    }
+
+    // อัปเดตการเชื่อมต่อ
+    function setConnection(ok, text){
+      connectionStatus.innerHTML = '';
+      const icon = document.createElement('span');
+      icon.className = ok ? '' : 'loading';
+      if(ok){ icon.textContent = '✓'; icon.style.fontWeight = '900'; }
+      connectionStatus.appendChild(icon);
+      const label = document.createElement('span');
+      label.textContent = ' ' + text;
+      label.className = ok ? 'conn-ok' : 'conn-bad';
+      connectionStatus.appendChild(label);
+    }
+
+    // Auth state listener (เดิม + UX)
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        authStatus.className = 'badge connected';
+        authStatus.innerHTML = '<span class="dot"></span><span>✓ ล็อกอินแล้ว (ไม่ระบุตัวตน)</span>';
+        anonymousLoginBtn.style.display = 'none';
+        controlButton.disabled = true; // จะเปิดใช้งานหลัง snapshot พร้อม
+        setupDatabaseListener();
+        toast('ล็อกอินสำเร็จ', '✅');
+      } else {
+        authStatus.className = 'badge disconnected';
+        authStatus.innerHTML = '<span class="dot"></span><span>ไม่ได้ล็อกอิน</span>';
+        anonymousLoginBtn.style.display = 'inline-block';
+        controlButton.disabled = true;
+      }
+    });
+
+    // Anonymous login (เดิม + จับ error เพิ่มเติม)
+    anonymousLoginBtn.addEventListener('click', () => {
+      auth.signInAnonymously()
+        .then(() => {
+          // ok
+        })
+        .catch((error) => {
+          console.error('Anonymous sign-in error:', error);
+          let msg = 'การล็อกอินล้มเหลว: ' + error.message;
+          // จับเคสที่พบบ่อย
+          if ((error && String(error.message).includes('restricted to administrators only')) ||
+              (error && String(error.code).includes('auth/operation-not-allowed'))) {
+            msg = 'การล็อกอินแบบไม่ระบุตัวตนถูกปิดใช้งานในโปรเจกต์นี้ โปรดเปิด Anonymous sign-in ใน Firebase Console และตรวจสอบ Security Rules';
+          }
+          alert(msg);
+          toast('ล็อกอินไม่สำเร็จ', '⚠️');
         });
-        
-        // Anonymous login
-        anonymousLoginBtn.addEventListener('click', () => {
-            auth.signInAnonymously()
-                .then(() => {
-                    console.log('Signed in anonymously');
-                })
-                .catch((error) => {
-                    console.error('Anonymous sign-in error:', error);
-                    alert('การล็อกอินล้มเหลว: ' + error.message);
-                });
-        });
-        
-        // Setup database listener after authentication
-        function setupDatabaseListener() {
-            // Listen for changes in the light status
-            lightDoc.onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    updateUI(data.status);
-                    connectionStatus.className = 'connection-status connected';
-                    connectionStatus.innerHTML = '✓ เชื่อมต่อกับเซิร์ฟเวอร์แล้ว';
-                    controlButton.disabled = false;
-                } else {
-                    // Create document if it doesn't exist
-                    lightDoc.set({ status: 0, lastUpdated: new Date() });
-                }
-            }, (error) => {
-                console.error('Error reading from database:', error);
-                connectionStatus.className = 'connection-status disconnected';
-                connectionStatus.innerHTML = '✗ การเชื่อมต่อมีปัญหา';
-                controlButton.disabled = true;
-            });
+    });
+
+    // Firestore realtime (เดิม)
+    function setupDatabaseListener() {
+      lightDoc.onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          updateUI(data.status);
+          setConnection(true, 'เชื่อมต่อกับเซิร์ฟเวอร์แล้ว');
+          controlButton.disabled = false;
+        } else {
+          // ถ้าเอกสารไม่มี ให้สร้างครั้งแรก (เดิม)
+          lightDoc.set({ status: 0, lastUpdated: new Date() })
+            .then(()=> setConnection(true, 'สร้างค่าเริ่มต้นและเชื่อมต่อแล้ว'))
+            .catch((e)=> { console.error(e); setConnection(false, 'ไม่สามารถสร้างเอกสารเริ่มต้น'); });
         }
-        
-        // Update the UI based on light status
-        function updateUI(status) {
-            if (status === 1) {
-                statusIndicator.textContent = 'เปิด';
-                statusIndicator.className = 'status-indicator status-on';
-                controlButton.textContent = 'ปิดไฟ';
-            } else {
-                statusIndicator.textContent = 'ปิด';
-                statusIndicator.className = 'status-indicator status-off';
-                controlButton.textContent = 'เปิดไฟ';
-            }
+      }, (error) => {
+        console.error('Error reading from database:', error);
+        setConnection(false, 'การเชื่อมต่อมีปัญหา');
+        controlButton.disabled = true;
+      });
+    }
+
+    // Toggle light (เดิม + กันกดรัว + Toast)
+    controlButton.addEventListener('click', () => {
+      if (!auth.currentUser) {
+        alert('กรุณาล็อกอินก่อน');
+        toast('กรุณาล็อกอินก่อน', '🔒');
+        return;
+      }
+      if(isUpdating) return;
+
+      isUpdating = true;
+      const prevText = controlButton.textContent;
+      controlButton.textContent = 'กำลังอัปเดต...';
+      controlButton.disabled = true;
+
+      lightDoc.get().then((doc) => {
+        if (doc.exists) {
+          const currentStatus = Number(doc.data().status) === 1 ? 1 : 0;
+          const newStatus = currentStatus === 1 ? 0 : 1;
+          return lightDoc.update({
+            status: newStatus,
+            lastUpdated: new Date(),
+            lastUpdatedBy: auth.currentUser.uid
+          });
+        } else {
+          // ถ้าไม่มีก็สร้างใหม่ (ความสอดคล้องเดิม)
+          return lightDoc.set({
+            status: 1,
+            lastUpdated: new Date(),
+            lastUpdatedBy: auth.currentUser.uid
+          });
         }
-        
-        // Toggle light status when button is clicked
-        controlButton.addEventListener('click', () => {
-            if (!auth.currentUser) {
-                alert('กรุณาล็อกอินก่อน');
-                return;
-            }
-            
-            lightDoc.get().then((doc) => {
-                if (doc.exists) {
-                    const currentStatus = doc.data().status;
-                    const newStatus = currentStatus === 1 ? 0 : 1;
-                    return lightDoc.update({ 
-                        status: newStatus,
-                        lastUpdated: new Date(),
-                        lastUpdatedBy: auth.currentUser.uid
-                    });
-                }
-            }).then(() => {
-                console.log('Light status updated successfully');
-            }).catch((error) => {
-                console.error('Error updating light status:', error);
-                alert('เกิดข้อผิดพลาดในการอัพเดทสถานะไฟ: ' + error.message);
-            });
-        });
-    </script>
+      }).then(() => {
+        toast('อัปเดตสถานะไฟสำเร็จ', '💡');
+      }).catch((error) => {
+        console.error('Error updating light status:', error);
+        alert('เกิดข้อผิดพลาดในการอัปเดตสถานะไฟ: ' + error.message);
+        toast('อัปเดตไม่สำเร็จ', '❌');
+      }).finally(()=>{
+        controlButton.textContent = prevText;
+        controlButton.disabled = false;
+        isUpdating = false;
+      });
+    });
+
+    // โหลดหน้าแล้วโชว์ Toast เล็ก ๆ
+    window.addEventListener('load', ()=> {
+      setTimeout(()=> toast('พร้อมใช้งาน', '🚀'), 350);
+    });
+  </script>
 </body>
 </html>
